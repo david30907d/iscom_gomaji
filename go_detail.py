@@ -92,7 +92,7 @@ def Office_hour_transfer(office_hour,item):
 					endday=day[d]
 					#print(endday)
 			#以下適用旅行---週一至週日 24hrs
-			if 'hrs' in sub or '24H' in sub:
+			if 'hrs' in sub or '24H' in sub or '24h' in sub:
 				for i in range(startday,endday+1):
 					if i not in office:
 						office[i]={'Week':i}
@@ -297,7 +297,7 @@ output=[]
 #爬蟲
 def crawl(target,area):
 	#global output
-	driver=webdriver.Chrome(chromepath)
+	driver=webdriver.PhantomJS('./phantomjs')
 	driver.get(target)
 
 	#一直往下scroll
@@ -470,6 +470,7 @@ for each in url:
 		area='雲林'
 	elif 'Changhua' or 'region=2&city_id=9&ch=2' in each:
 		area='彰化'
+	print(each, area)
 	crawl(each,area)
 	time.sleep(3)
 #print(output)
