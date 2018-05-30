@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import csv
 import re
 import json
-import urllib
+import urllib, tqdm
 from urllib.request import urlopen
 st=time.time()
 #鄉鎮市代碼
@@ -459,7 +459,7 @@ url=['http://www.gomaji.com/index.php?city=Taichung&ch=7',
 #target="http://www.gomaji.com/travel.php?region=2&city_id=4&ch=2"#travel
 
 chromepath="./chromedriver"
-for each in url:
+for each in tqdm.tqdm(url):
 	if 'Taichung' or 'region=2&city_id=4&ch=2' in each:
 		area='台中'
 	elif 'Nantou' or 'region=2&city_id=10&ch=2' in each:
