@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 #引入ActionChains滑鼠操作
@@ -12,7 +13,7 @@ from urllib.request import urlopen
 st=time.time()
 #鄉鎮市代碼
 code={}
-with open('district_code.csv','r', encoding='utf-8') as f:
+with open('district_code.csv','r') as f:
 	spamreader=csv.reader(f,delimiter=',')
 	for row in spamreader:
 		code[row[1].strip('\"')]=row[0]
@@ -50,7 +51,9 @@ def Office_hour_transfer(office_hour,item):
 #{"Week":1,"OpenTime":1000,"CloseTime":1800,"OpenTime_String":"10:00","CloseTime_String":"18:00"}
 #營業時間：週一至週五 11:00~15:00 17:00~22:00 週六至週日及國定例假日 11:00~22:00
 	sub=office_hour
+	#print('-'*30)
 	#print(sub)
+	#print('-'*30)
 	closeday=0
 	if '不定期' in sub or '公告' in sub or '不定時' in sub:
 		#print('無效時間')
@@ -130,11 +133,19 @@ def Office_hour_transfer(office_hour,item):
 						new[i]={'Week':i}
 						new[i].update({'OpenTime_String':sub[sub.find('~')-5:sub.find('~')]})
 						#transfer to int					
-						new[i].update({'OpenTime':int(sub[sub.find('~')-5:sub.find('~')].replace(':',''))})
+						
+						if sub[sub.find('~')-5:sub.find('~')].replace(':','')!='':
+							temp_str=sub[sub.find('~')-5:sub.find('~')]
+							if '～' in sub[sub.find('~')-5:sub.find('~')]:
+								temp_str=sub[sub.find('~')-5:sub.find('~')].replace('～','')
+							new[i].update({'OpenTime':int(temp_str.replace(':',''))})
 						new[i].update({'CloseTime_String':sub[sub.find('~')+1:sub.find('~')+6]})
 						#transfer to int
-						
-						new[i].update({'CloseTime':int(sub[sub.find('~')+1:sub.find('~')+6].replace(':',''))})
+						if sub[sub.find('~')+1:sub.find('~')+6].replace(':','')!='':
+							temp_str2=sub[sub.find('~')+1:sub.find('~')+6]
+							if '～' in sub[sub.find('~')+1:sub.find('~')+6]:
+								temp_str2=sub[sub.find('~')+1:sub.find('~')+6].replace('～','')
+							new[i].update({'CloseTime':int(temp_str2.replace(':',''))})
 						office[i].append(new)
 					#print('same day 2nd office hour')
 					#print(sub[:sub.find('~')])#2nd start hour
@@ -317,105 +328,108 @@ def crawl(target,area):
 		else:
 		#商品category
 			href="http://www.gomaji.com/"+str(ele['href'])
-			driver.get(href)
-			soup_detail=BeautifulSoup(driver.page_source,'html.parser')
-			out={}
-			#景點型態
-			Gomaji_cate(target,out)
-			if 'Travel' in href:
-				out['Gomaji類別']='旅行'
-				store_area=soup_detail.select('h1 .travel-sign')#旅遊的tag不一樣
-			else:
-				store_area=soup_detail.select('h1 img')[0]['alt']
-			if store_area=='日本' or store_area=='公益':# or store_area=='購物':
-				#soup_detail.select('h1 img')[0]['alt']→商店左上角
-				#print(store_area)
-				continue
-			else:
-				#以下為1個店家之store info	
-				for h in soup_detail.select('#store_intro h4 a'):
-					if '網站' in h.string:
-						out['網站連結']=str(h['href'])
-					if 'FB' in h.string:
-						out['FB連結']=str(h['href'])
-				#以下是簡介
-				subcribe=""
-				for p in soup_detail.select('#store_intro p'):
-					order=0
-					for child in p.descendants:
-						s=child.string
-						if child.find('span')==-1 and s.replace('\n','')!='':
-							if order>0:#避開店名
-								#print(s)
-								subcribe+=s.replace('\n','')
-							order=order+1
-						if order>2 or len(subcribe)>20:
-							break
-					if len(subcribe)>20:
-						break
-				#print(subcribe)
-				out['簡介']=subcribe
-				#以下為圖片
-				if soup_detail.select('#store_intro p')[0].find('img'):
-					pic=soup_detail.select('#store_intro p')[0].find_all('img')[0]
-				elif soup_detail.select('#store_intro p')[1].find('img'):
-					pic=soup_detail.select('#store_intro p')[1].find_all('img')[0]
+			try:
+				driver.get(href)
+				soup_detail=BeautifulSoup(driver.page_source,'html.parser')
+				out={}
+				#景點型態
+				Gomaji_cate(target,out)
+				if 'Travel' in href:
+					out['Gomaji類別']='旅行'
+					store_area=soup_detail.select('h1 .travel-sign')#旅遊的tag不一樣
 				else:
-					pic=soup_detail.select('#store_intro p')[2].find_all('img')[0]
-				#print(pic['data-original'])
-				if 'data-original' in pic:
-					out['圖片']=pic['data-original']
-				elif 'scr' in pic:
-					out['圖片']=pic['src']
-				#以下為適用分店資訊
-				for store_info in soup_detail.select('#branch_list'):
-					if store_info.find('label'):
-						out['景點名稱']=store_info.find_all('label')[0].text
-						#景點型態			
-						if out['Gomaji類別']=='旅行':
-							Site_type(out['景點名稱'],out)
-						for store in store_info.find_all('div', attrs={'style': 'display: table-cell;'}):
-							for each in store.find_all('p'):		
-								if ':' in each.text or '：' in each.text:
-									if '電話' in each.text:
-										out['連絡電話']=each.text[3:]
-									elif '地址' in each.text:
-										out['地址資訊']=each.text[3:]
-										County_code_transfer(out['地址資訊'],out)
-										District_code_transfer(out['地址資訊'],out)
-										#以下轉經緯度
-										Lon_lat_transfer(out['地址資訊'],out)
-									elif '營業時間' in each.text:							
-										str_office=each.text[5:]
-										Office_hour_transfer(str_office,out)														
-									elif '粉絲團' in each.text:
-										out['FB連結']=each.text[4:]						
-							if '地址資訊' in out:#for多家分店時
-								if area in out['地址資訊']:
-									break
-						#沒有一間分店在area
-						if '地址資訊' in out and area in out['地址資訊']:
-							pass
-						else:
-							out={}
+					store_area=soup_detail.select('h1 img')[0]['alt']
+				if store_area=='日本' or store_area=='公益':# or store_area=='購物':
+					#soup_detail.select('h1 img')[0]['alt']→商店左上角
+					#print(store_area)
+					continue
+				else:
+					#以下為1個店家之store info	
+					for h in soup_detail.select('#store_intro h4 a'):
+						if '網站' in h.string:
+							out['網站連結']=str(h['href'])
+						if 'FB' in h.string:
+							out['FB連結']=str(h['href'])
+					#以下是簡介
+					subcribe=""
+					for p in soup_detail.select('#store_intro p'):
+						order=0
+						for child in p.descendants:
+							s=child.string
+							if child.find('span')==-1 and s.replace('\n','')!='':
+								if order>0:#避開店名
+									#print(s)
+									subcribe+=s.replace('\n','')
+								order=order+1
+							if order>2 or len(subcribe)>20:
+								break
+						if len(subcribe)>20:
 							break
-						if out['景點型態']=='美食':
-							#以下轉美食類別
-							out['景點類別']=['小吃/特產類']
-							Food_cate(str(out['景點名稱']+out['簡介']),out)
-							#以下轉美食時段
-							if '營業時間' in out:
-								Food_time(str_office,out)
-						if out['景點型態']=='住宿':
-							#轉住宿類別
-							Hotel_cate(str(out['景點名稱']+out['簡介']),out)
-						if out['景點型態']=='景點':
-							#轉景點類別
-							Site_cate(str(out['景點名稱']+out['簡介']),out)
-				if out!={} and '地址資訊' in out:
-					output.append(out)
-					#print(out)	
-					#break
+					#print(subcribe)
+					out['簡介']=subcribe
+					#以下為圖片
+					if soup_detail.select('#store_intro p')[0].find('img'):
+						pic=soup_detail.select('#store_intro p')[0].find_all('img')[0]
+					elif soup_detail.select('#store_intro p')[1].find('img'):
+						pic=soup_detail.select('#store_intro p')[1].find_all('img')[0]
+					else:
+						pic=soup_detail.select('#store_intro p')[2].find_all('img')[0]
+					#print(pic['data-original'])
+					if 'data-original' in pic:
+						out['圖片']=pic['data-original']
+					elif 'scr' in pic:
+						out['圖片']=pic['src']
+					#以下為適用分店資訊
+					for store_info in soup_detail.select('#branch_list'):
+						if store_info.find('label'):
+							out['景點名稱']=store_info.find_all('label')[0].text
+							#景點型態			
+							if out['Gomaji類別']=='旅行':
+								Site_type(out['景點名稱'],out)
+							for store in store_info.find_all('div', attrs={'style': 'display: table-cell;'}):
+								for each in store.find_all('p'):		
+									if ':' in each.text or '：' in each.text:
+										if '電話' in each.text:
+											out['連絡電話']=each.text[3:]
+										elif '地址' in each.text:
+											out['地址資訊']=each.text[3:]
+											County_code_transfer(out['地址資訊'],out)
+											District_code_transfer(out['地址資訊'],out)
+											#以下轉經緯度
+											Lon_lat_transfer(out['地址資訊'],out)
+										elif '營業時間' in each.text:							
+											str_office=each.text[5:]
+											Office_hour_transfer(str_office,out)														
+										elif '粉絲團' in each.text:
+											out['FB連結']=each.text[4:]				
+								if '地址資訊' in out:#for多家分店時
+									if area in out['地址資訊']:
+										break
+							#沒有一間分店在area
+							if '地址資訊' in out and area in out['地址資訊']:
+								pass
+							else:
+								out={}
+								break
+							if out['景點型態']=='美食':
+								#以下轉美食類別
+								out['景點類別']=['小吃/特產類']
+								Food_cate(str(out['景點名稱']+out['簡介']),out)
+								#以下轉美食時段
+								if '營業時間' in out:
+									Food_time(str_office,out)
+							if out['景點型態']=='住宿':
+								#轉住宿類別
+								Hotel_cate(str(out['景點名稱']+out['簡介']),out)
+							if out['景點型態']=='景點':
+								#轉景點類別
+								Site_cate(str(out['景點名稱']+out['簡介']),out)
+					if out!={} and '地址資訊' in out:
+						output.append(out)
+						#print(out)	
+						#break
+			except TimeoutException:
+				continue
 	driver.close()
 
 url=['http://www.gomaji.com/index.php?city=Taichung&ch=7',
@@ -474,4 +488,4 @@ f.close()
 #f1.close()
 	
 et=time.time()
-print(et-st)
+#print(et-st)
