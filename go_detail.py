@@ -13,7 +13,7 @@ from urllib.request import urlopen
 st=time.time()
 #鄉鎮市代碼
 code={}
-with open('district_code.csv','r') as f:
+with open('district_code.csv','r', encoding='utf-8') as f:
 	spamreader=csv.reader(f,delimiter=',')
 	for row in spamreader:
 		code[row[1].strip('\"')]=row[0]
