@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 import csv
 import re
 import json
-import urllib, tqdm
+import urllib
 from urllib.request import urlopen
 st=time.time()
 #鄉鎮市代碼
@@ -92,7 +92,7 @@ def Office_hour_transfer(office_hour,item):
 					endday=day[d]
 					#print(endday)
 			#以下適用旅行---週一至週日 24hrs
-			if 'hrs' in sub or '24H' in sub or '24h' in sub:
+			if 'hrs' in sub or '24H' or '24h' in sub:
 				for i in range(startday,endday+1):
 					if i not in office:
 						office[i]={'Week':i}
@@ -297,7 +297,7 @@ output=[]
 #爬蟲
 def crawl(target,area):
 	#global output
-	driver=webdriver.PhantomJS('./phantomjs')
+	driver=webdriver.Chrome(chromepath)
 	driver.get(target)
 
 	#一直往下scroll
@@ -392,7 +392,7 @@ def crawl(target,area):
 										if '電話' in each.text:
 											out['連絡電話']=each.text[3:]
 										elif '地址' in each.text:
-											out['地址資訊']=each.text[3:]
+											out['地址資訊']=each.text[3:].strip('\n                                                    \n')
 											County_code_transfer(out['地址資訊'],out)
 											District_code_transfer(out['地址資訊'],out)
 											#以下轉經緯度
@@ -427,6 +427,7 @@ def crawl(target,area):
 					if out!={} and '地址資訊' in out:
 						output.append(out)
 						#print(out)	
+						#print('-'*30)
 						#break
 			except TimeoutException:
 				continue
@@ -459,7 +460,7 @@ url=['http://www.gomaji.com/index.php?city=Taichung&ch=7',
 #target="http://www.gomaji.com/travel.php?region=2&city_id=4&ch=2"#travel
 
 chromepath="./chromedriver"
-for each in tqdm.tqdm(url):
+for each in url:
 	if 'Taichung' or 'region=2&city_id=4&ch=2' in each:
 		area='台中'
 	elif 'Nantou' or 'region=2&city_id=10&ch=2' in each:
@@ -470,7 +471,6 @@ for each in tqdm.tqdm(url):
 		area='雲林'
 	elif 'Changhua' or 'region=2&city_id=9&ch=2' in each:
 		area='彰化'
-	print(each, area)
 	crawl(each,area)
 	time.sleep(3)
 #print(output)
