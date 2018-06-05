@@ -7,8 +7,8 @@ import time
 from bs4 import BeautifulSoup
 import csv
 import re
-import json
-import urllib
+import json, os
+import urllib, tqdm
 from urllib.request import urlopen
 st=time.time()
 #鄉鎮市代碼
@@ -92,7 +92,7 @@ def Office_hour_transfer(office_hour,item):
 					endday=day[d]
 					#print(endday)
 			#以下適用旅行---週一至週日 24hrs
-			if 'hrs' in sub or '24H' or '24h' in sub:
+			if 'hrs' in sub or '24H' in sub or '24h' in sub:
 				for i in range(startday,endday+1):
 					if i not in office:
 						office[i]={'Week':i}
@@ -297,7 +297,7 @@ output=[]
 #爬蟲
 def crawl(target,area):
 	#global output
-	driver=webdriver.Chrome(chromepath)
+	driver=webdriver.PhantomJS(phantomjsPath)
 	driver.get(target)
 
 	#一直往下scroll
@@ -433,34 +433,15 @@ def crawl(target,area):
 				continue
 	driver.close()
 
-url=['http://www.gomaji.com/index.php?city=Taichung&ch=7',
-'http://www.gomaji.com/index.php?city=Taichung&ch=8',
-'http://www.gomaji.com/index.php?city=Taichung&ch=9',
-'http://www.gomaji.com/travel.php?region=2&city_id=4&ch=2',
-'http://www.gomaji.com/index.php?city=Nantou&ch=7',
-'http://www.gomaji.com/index.php?city=Nantou&ch=8',
-'http://www.gomaji.com/index.php?city=Nantou&ch=9',
-'http://www.gomaji.com/travel.php?region=2&city_id=10&ch=2',
-'http://www.gomaji.com/index.php?city=Miaoli&ch=7',
-'http://www.gomaji.com/index.php?city=Miaoli&ch=8',
-'http://www.gomaji.com/index.php?city=Miaoli&ch=9',
-'http://www.gomaji.com/travel.php?region=1&city_id=8&ch=2'
-'http://www.gomaji.com/index.php?city=Yunlin&ch=7',
-'http://www.gomaji.com/index.php?city=Yunlin&ch=8',
-'http://www.gomaji.com/index.php?city=Yunlin&ch=9',
-'http://www.gomaji.com/travel.php?region=3&city_id=11&ch=2',
-'http://www.gomaji.com/index.php?city=Changhua&ch=7',
-'http://www.gomaji.com/index.php?city=Changhua&ch=8',
-'http://www.gomaji.com/index.php?city=Changhua&ch=9',
-'http://www.gomaji.com/travel.php?region=2&city_id=9&ch=2']
+url=['http://www.gomaji.com/index.php?city=Taichung&ch=7']
 #台中,南投,苗栗,雲林,彰化
 #target = 'http://www.gomaji.com/index.php?city=Taichung'#票券
 #target='http://www.gomaji.com/index.php?city=Taichung&ch=8'#美容舒壓
 #target='http://www.gomaji.com/index.php?city=Taichung&ch=9'#生活娛樂
 #target="http://www.gomaji.com/travel.php?region=2&city_id=4&ch=2"#travel
 
-chromepath="./chromedriver"
-for each in url:
+phantomjsPath="./phantomjs.exe" if os.name == 'nt' else './phantomjs'
+for each in tqdm.tqdm(url):
 	if 'Taichung' or 'region=2&city_id=4&ch=2' in each:
 		area='台中'
 	elif 'Nantou' or 'region=2&city_id=10&ch=2' in each:
