@@ -3,9 +3,14 @@
 FROM sgoblin/python3.5
 MAINTAINER davidtnfsh <davidtnfsh@gmail.com> 
 
+ENV LANG=C.UTF-8
+
+RUN mkdir /code
+WORKDIR /code
+ADD . /code/
+
 # install ifconfig
 RUN apt-get install -y net-tools vim wget libnss3-dev
-RUN git clone https://github.com/david30907d/iscom_gomaji.git
 
 # solve encoding error for chinese
 RUN sudo locale-gen zh_TW zh_TW.UTF-8
@@ -15,7 +20,7 @@ ENV LANG=C.UTF-8
 # add ll in alias
 RUN export alias ll='ls -al'
 
-CMD [] 
+CMD ['python3', 'manage.py', 'runserver', '0.0.0.0:8000'] 
 
 ENTRYPOINT ["/bin/bash"]
 
