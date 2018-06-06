@@ -10,18 +10,20 @@ WORKDIR /code
 ADD . /code/
 
 # install ifconfig
+RUN apt-get update
 RUN apt-get install -y net-tools vim wget libnss3-dev
+RUN pip3 install -r requirements.txt
 
 # solve encoding error for chinese
-RUN sudo locale-gen zh_TW zh_TW.UTF-8
-RUN echo "LC_CTYPE=zh_TW.UTF-8" | sudo tee -a /etc/environment
 ENV LANG=C.UTF-8
 
 # add ll in alias
 RUN export alias ll='ls -al'
 
-CMD ['python3', 'manage.py', 'runserver', '0.0.0.0:8000'] 
-
-ENTRYPOINT ["/bin/bash"]
-
+# the port on which we will be running app server (django runserver / gunicorn)
 EXPOSE 8000
+
+# 建立新容器時要執行的指令
+CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+
+ENTRYPOINT [""]
