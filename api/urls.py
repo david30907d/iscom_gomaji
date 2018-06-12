@@ -16,5 +16,6 @@ Including another URLconf
 from django.conf.urls import url
 from api.views import *
 urlpatterns = [
-    url(r'^get/', get)
+	url(r'^getsite/', getsite),
+    url(r'^getcoupon/', getcoupon)
 ]

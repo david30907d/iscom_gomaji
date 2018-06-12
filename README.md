@@ -4,13 +4,17 @@
 
 1. `sudo apt-get install libnss3-dev`
 2. `pip3 install -r requirements.txt`
-2. run crawler to update results (optional):`python3 go_detail.py`
+2. run crawler to update results (optional):
+    * `python3 go_detail.py`
+    * `python3 coupon.py`
 3. run django api server:`python3 manage.py runserver`
 
 ## Windows
 
 1. `pip3 install -r requirements.txt`
-2. run crawler to update results (optional):`python3 go_detail.py`
+2. run crawler to update results (optional):
+    * `python3 go_detail.py`
+    * `python3 coupon.py`
 3. run django api server:`python3 manage.py runserver`
 
 ## Docker
@@ -18,7 +22,9 @@
 1. `docker build -t iscomgomaji .`
 2. `docker run -itd --name iscomgomaji1 iscomgomaji`
 3. `docker exec -it iscomgomaji1 bash`
-4. run crawler to update results (optional):`python3 go_detail.py`
+4. run crawler to update results (optional):
+    * `python3 go_detail.py`
+    * `python3 coupon.py`
 5. django api server already start when running the container, so there's no need to execute that cmd again.
 
 ## Port Mapping
@@ -29,12 +35,16 @@ you need to run the container with `docker run -itd --name <container name> -p <
 
 ## Api
 
-* `api/get`: return gomaji json
-	* parameter: `num`, default 10
-	* example: `http://ip:port/api/get/?num=20`
+* `api/getsite`: return stands of gomaji
+  * parameter: `num`, default 10
+  * example: `http://ip:port/api/getsite/?num=20`
+* `api/getcoupon`: return gomaji coupon
+  * parameter: `num`, default 10
+  * example: `http://ip:port/api/getcoupon/?num=20`
 
 ## Result
 
+* getsite:
 ```json
 [
   {
@@ -82,5 +92,30 @@ you need to run the container with `docker run -itd --name <container name> -p <
     ],
     "地址資訊": "台中市西區向上路一段105號(近審計新村、勤美誠品)"
   }
+]
+```
+
+* getcoupon:
+```json
+[
+  {
+    "href": "http://www.gomaji.com/Taichung_p204057.html",
+    "coupon": "A.甜美可人150根嫁接 / B.水潤大眼不限根數嫁接 / C.6D唯美輕盈400根嫁接 / D.6D閃耀迷人600...",
+    "term": "優惠期間為 2018 年 4 月 21 日 至 2018 年 7 月 21 日，平假日皆可使用，毎週日公休、6/18 公休\n",
+    "title": "YES美睫",
+    "img": "https://picdn.gomaji.com/products/57/204057/204057_1_3_r.jpg",
+    "prize": "299"
+  },
+  {
+    "href": "http://www.gomaji.com/Taichung_p198525.html",
+    "coupon": "A.單人炸物飲品吃到飽 / B.單人經典套餐",
+    "term": "兌換期為 2018/3/14 至 2018/9/11，平假日皆可使用，公休日依FB粉絲團公告為主\n",
+    "title": "快樂小屋桌上遊戲主題餐廳",
+    "img": "https://picdn.gomaji.com/products/525/198525/198525_1_r.jpg",
+    "prize": "189"
+  }
+  ...
+  ...
+  ...
 ]
 ```
